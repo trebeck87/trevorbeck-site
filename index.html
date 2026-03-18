@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trevor Beck</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;overflow:hidden}
+  body{font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased;transition:background .8s,color .8s}
+  body{background:#000;color:#d4d4d8}
+
+  /* Dark mode (default) */
+  body .eq-tag{color:#a8c4e0}
+  body .tagline{color:#71717a}
+  body .links a{color:#9ba4b4;border-bottom-color:rgba(155,164,180,.2)}
+  body .links a:hover{color:#FF8C1A;border-bottom-color:rgba(255,140,26,.4)}
+  body .link-dot{background:#6b7280}
+  body .hint{color:#6b7280}
+
+  /* Light mode */
+  body.light{background:#EEF2F9;color:#141828}
+  body.light .eq-tag{color:#4a6a9a}
+  body.light .name{color:#141828}
+  body.light .tagline{color:#5a6478}
+  body.light .links a{color:#4a5568;border-bottom-color:rgba(74,90,114,.25)}
+  body.light .links a:hover{color:#C06000;border-bottom-color:rgba(192,96,0,.4)}
+  body.light .link-dot{background:#8a96a8}
+  body.light .hint{color:#7a88a0}
+  body.light .skip{color:#6a7a92;border-color:#c8d0e0;background:rgba(238,242,249,.6)}
+  body.light .skip:hover{color:#3a4a62;border-color:#8a96a8}
+  body.light .theme-toggle{border-color:#c8d0e0;background:rgba(238,242,249,.6)}
+  body.light .theme-toggle:hover{border-color:#8a96a8;background:rgba(228,233,242,.8)}
+
+  /* Theme toggle */
+  .theme-toggle{position:fixed;top:2rem;right:2rem;z-index:20;width:36px;height:36px;border-radius:50%;border:1px solid #2a2a30;background:rgba(0,0,0,.4);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:all .4s}
+  .theme-toggle.visible{opacity:1;pointer-events:auto}
+  .theme-toggle:hover{border-color:#555;background:rgba(0,0,0,.6)}
+  .theme-toggle svg{width:16px;height:16px;transition:transform .4s}
+  .theme-toggle:hover svg{transform:rotate(30deg)}
+  .theme-toggle .sun{display:none}
+  .theme-toggle .moon{display:block}
+  body.light .theme-toggle .sun{display:block}
+  body.light .theme-toggle .moon{display:none}
+
+  /* Layout */
+  #hero-video{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;object-position:center center;z-index:0}
+  #eq-canvas{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0;transition:opacity 3s ease-out}
+  #eq-canvas.visible{opacity:1}
+  .content{position:fixed;inset:0;z-index:2;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:2rem;opacity:0;pointer-events:none;transition:opacity 3s ease-out}
+  .content.visible{opacity:1;pointer-events:auto}
+  .eq-tag{font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:300;letter-spacing:.3em;margin-bottom:2.5rem;opacity:0;transform:translateY(6px);transition:all 1.5s ease-out .5s,color .8s;min-height:1.2em}
+  .content.visible .eq-tag{opacity:1;transform:translateY(0)}
+  .name{font-family:'Cormorant Garamond',serif;font-size:clamp(3rem,8vw,6rem);font-weight:300;letter-spacing:.02em;line-height:1;margin-bottom:1.5rem;opacity:0;transform:translateY(8px);transition:all 1.5s ease-out 1s,color .8s}
+  .content.visible .name{opacity:1;transform:translateY(0)}
+  .tagline{font-size:1rem;font-weight:300;max-width:420px;line-height:1.6;margin-bottom:3.5rem;opacity:0;transform:translateY(8px);transition:all 1.5s ease-out 1.5s,color .8s}
+  .content.visible .tagline{opacity:1;transform:translateY(0)}
+  .links{display:flex;gap:2rem;align-items:center;opacity:0;transform:translateY(8px);transition:all 1.5s ease-out 2s}
+  .content.visible .links{opacity:1;transform:translateY(0)}
+  .links a{font-family:'JetBrains Mono',monospace;font-size:.7rem;font-weight:400;letter-spacing:.15em;text-transform:uppercase;text-decoration:none;transition:color .3s,border-color .3s;border-bottom:1px solid;padding-bottom:2px}
+  .link-dot{width:3px;height:3px;border-radius:50%;transition:background .8s}
+  .hint{position:fixed;bottom:2.5rem;left:50%;transform:translateX(-50%);font-family:'JetBrains Mono',monospace;font-size:.7rem;font-weight:400;letter-spacing:.25em;text-transform:uppercase;z-index:2;opacity:0;pointer-events:none;transition:opacity 2s ease-out,color .8s}
+  .hint.visible{animation:hintBreathe 4s ease-in-out infinite}
+  @keyframes hintBreathe{0%,100%{opacity:.4;text-shadow:none}50%{opacity:1;text-shadow:0 0 12px rgba(255,140,26,.15)}}
+  body.light .hint.visible{animation:hintBreatheL 4s ease-in-out infinite}
+  @keyframes hintBreatheL{0%,100%{opacity:.4;text-shadow:none}50%{opacity:1;text-shadow:0 0 12px rgba(192,96,0,.1)}}
+  .skip{position:fixed;bottom:2rem;right:2rem;z-index:10;font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;color:#5a6270;background:rgba(0,0,0,.5);border:1px solid #2a2a30;padding:.6rem 1.2rem;cursor:pointer;transition:all .3s;opacity:0}
+  .skip.show{opacity:1}
+  .skip:hover{color:#FF8C1A;border-color:#FF8C1A;background:rgba(0,0,0,.7)}
+  .skip.hidden{opacity:0 !important;pointer-events:none;transition:opacity .8s}
+  body::after{content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:.015;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:256px 256px}
+  @media(max-width:768px){.content{padding:1.5rem}.eq-tag{font-size:.6rem;letter-spacing:.2em;margin-bottom:1.8rem}.name{font-size:clamp(2.2rem,10vw,3.5rem);margin-bottom:1rem}.tagline{font-size:.9rem;margin-bottom:2.5rem;max-width:320px}.links{gap:1.2rem;flex-wrap:wrap;justify-content:center}.links a{font-size:.6rem;letter-spacing:.1em;padding:.5rem .2rem}.link-dot{width:2px;height:2px}.hint{font-size:.55rem;letter-spacing:.2em;bottom:1.5rem;white-space:nowrap}.skip{bottom:1.5rem;right:1rem;font-size:.55rem;padding:.5rem 1rem}.theme-toggle{top:1.2rem;right:1.2rem;width:32px;height:32px}}
+  @media(max-width:400px){.name{font-size:2rem}.eq-tag{font-size:.5rem;letter-spacing:.15em;margin-bottom:1.5rem}.tagline{font-size:.82rem}.links{gap:.8rem}.links a{font-size:.55rem}}
+</style>
+</head>
+<body>
+<video id="hero-video" autoplay muted playsinline><source src="hero-video.mp4" type="video/mp4"></video>
+<canvas id="eq-canvas"></canvas>
+<button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+  <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="#a8c4e0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="#E07000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+</button>
+<div class="content" id="content">
+  <div class="eq-tag">Bridging technical and commercial</div>
+  <h1 class="name">Trevor Beck</h1>
+  <p class="tagline">Energy infrastructure. AI systems. Capital markets.<br>Converting potential into kinetic.</p>
+  <div class="links">
+    <a href="mailto:contact@trevorbeck.ai">Email</a>
+    <div class="link-dot"></div>
+    <a href="https://www.linkedin.com/in/trevorabeck" target="_blank" rel="noopener">LinkedIn</a>
+    <div class="link-dot"></div>
+    <a href="https://github.com/trebeck87" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</div>
+<div class="hint" id="hint"><span style="color:#FF8C1A;opacity:.5">&#9650;</span>&nbsp; potential energy building</div>
+<button class="skip" id="skip">Skip &rarr;</button>
+<script>
+var canvas=document.getElementById('eq-canvas'),ctx=canvas.getContext('2d'),W,H;
+function resizeCanvas(){W=canvas.width=innerWidth;H=canvas.height=innerHeight}
+resizeCanvas();addEventListener('resize',resizeCanvas);
+var mouseX=-1000,mouseY=-1000,isLightMode=false;
+document.addEventListener('mousemove',function(e){mouseX=e.clientX;mouseY=e.clientY});
+document.addEventListener('mouseleave',function(){mouseX=-1000;mouseY=-1000});
+document.addEventListener('touchstart',function(e){mouseX=e.touches[0].clientX;mouseY=e.touches[0].clientY});
+document.addEventListener('touchmove',function(e){mouseX=e.touches[0].clientX;mouseY=e.touches[0].clientY});
+document.addEventListener('touchend',function(){mouseX=-1000;mouseY=-1000});
+var library={
+'e\u207b':'Electron \u2014 fundamental negatively charged particle',
+'eV':'Electron volt \u2014 energy gained by an electron across one volt',
+'V = IR':'Ohm\'s Law \u2014 voltage equals current times resistance',
+'P = IV':'Electrical power \u2014 watts equals current times voltage',
+'\u2207\u00d7E':'Maxwell\'s Equation \u2014 curl of the electric field',
+'\u2207\u00d7B':'Amp\u00e8re\'s Law \u2014 magnetic field from current',
+'\u2207\u00b7E':'Gauss\'s Law \u2014 electric flux through a closed surface',
+'\u2207\u00b7B = 0':'No magnetic monopoles',
+'\u03b5\u2080':'Permittivity of free space',
+'\u03bc\u2080':'Permeability of free space',
+'\u03bb':'Wavelength \u2014 distance between wave peaks',
+'\u03bbf = c':'Wave equation \u2014 wavelength times frequency equals speed of light',
+'\u210f\u03c9':'Photon energy \u2014 reduced Planck constant times angular frequency',
+'E = hf':'Photon energy \u2014 Planck constant times frequency',
+'F = qE':'Electric force \u2014 charge times electric field',
+'\u0394G < 0':'Gibbs Free Energy \u2014 thermodynamically favorable reaction',
+'\u0394H':'Enthalpy change \u2014 heat absorbed or released',
+'\u0394S':'Entropy change \u2014 measure of disorder',
+'PV = nRT':'Ideal Gas Law \u2014 pressure, volume, temperature',
+'k_B T':'Thermal energy \u2014 Boltzmann constant times temperature',
+'S = k ln \u03a9':'Boltzmann entropy \u2014 function of microstates',
+'\u0394G = \u0394H - T\u0394S':'Gibbs equation \u2014 free energy from enthalpy and entropy',
+'K_eq':'Equilibrium constant \u2014 products to reactants ratio',
+'CH\u2084':'Methane \u2014 primary component of natural gas',
+'CO\u2082':'Carbon dioxide \u2014 greenhouse gas, capture target',
+'H\u2082':'Hydrogen \u2014 clean energy carrier',
+'NH\u2083':'Ammonia \u2014 hydrogen carrier and feedstock',
+'H\u2082O':'Water \u2014 steam cycle working fluid',
+'CH\u2083OH':'Methanol \u2014 liquid fuel, hydrogen carrier',
+'dS \u2265 0':'Second Law \u2014 entropy never decreases',
+'\u0394U = Q - W':'First Law \u2014 internal energy equals heat minus work',
+'Q = mc\u0394T':'Heat transfer \u2014 mass times specific heat times temp change',
+'\u03b7':'Thermal efficiency \u2014 useful work divided by heat input',
+'\u03b7_Carnot':'Carnot efficiency \u2014 max theoretical efficiency',
+'Cp':'Specific heat at constant pressure',
+'Cv':'Specific heat at constant volume',
+'\u03b3 = Cp/Cv':'Heat capacity ratio \u2014 adiabatic index',
+'W = \u222bPdV':'Pressure-volume work \u2014 expanding gas',
+'F = ma':'Newton\'s Second Law \u2014 force equals mass times acceleration',
+'F = dp/dt':'Force is the rate of change of momentum',
+'E = mc\u00b2':'Mass-energy equivalence',
+'\u00bdmv\u00b2':'Kinetic energy \u2014 energy of motion',
+'mgh':'Gravitational potential energy',
+'W = \u222bF\u00b7ds':'Work \u2014 force over displacement',
+'p = mv':'Momentum \u2014 mass times velocity',
+'\u03c4 = r\u00d7F':'Torque \u2014 rotational force',
+'\u0394E = 0':'Conservation of Energy \u2014 transforms, never lost',
+'Re':'Reynolds Number \u2014 inertial to viscous forces',
+'Ma':'Mach number \u2014 velocity vs speed of sound',
+'\u03c1v\u00b2/2':'Dynamic pressure \u2014 kinetic energy per volume',
+'\u0394P = \u03c1gh':'Hydrostatic pressure \u2014 fluid column height',
+'Q = AV':'Flow rate \u2014 area times velocity',
+'Bernoulli':'Conservation of energy in fluid flow',
+'Mtpa':'Million tonnes per annum \u2014 LNG capacity',
+'Bcfd':'Billion cubic feet per day \u2014 gas flow rate',
+'MMBtu':'Million BTU \u2014 natural gas energy unit',
+'LNG':'Liquefied Natural Gas \u2014 methane at -162\u00b0C',
+'-162\u00b0C':'LNG boiling point \u2014 cryogenic storage',
+'BOG':'Boil-Off Gas \u2014 evaporated LNG',
+'SPA':'Sale and Purchase Agreement \u2014 LNG offtake',
+'Henry Hub':'US natural gas pricing benchmark',
+'JKM':'Japan Korea Marker \u2014 Asian LNG spot price',
+'TTF':'Title Transfer Facility \u2014 European gas benchmark',
+'C3MR':'Propane Mixed Refrigerant \u2014 LNG process',
+'Train':'LNG production unit \u2014 single liquefaction line',
+'MCHE':'Main Cryogenic Heat Exchanger',
+'BOP':'Blowout Preventer \u2014 well control device',
+'FPSO':'Floating Production Storage and Offloading',
+'WI':'Water Injection \u2014 reservoir pressure maintenance',
+'TAR':'Turnaround \u2014 planned maintenance shutdown',
+'ASME PCC-1':'Joint integrity \u2014 bolted flange standard',
+'Topsides':'Above-water production equipment',
+'Riser':'Subsea to surface pipe connection',
+'ROV':'Remotely Operated Vehicle \u2014 underwater robot',
+'MW':'Megawatt \u2014 one million watts',
+'GW':'Gigawatt \u2014 one billion watts',
+'TWh':'Terawatt-hour \u2014 large-scale energy unit',
+'kWh':'Kilowatt-hour \u2014 energy consumption unit',
+'LCOE':'Levelized Cost of Energy \u2014 lifetime cost per unit',
+'$/MWh':'Dollars per megawatt-hour \u2014 energy price',
+'PPA':'Power Purchase Agreement \u2014 long-term contract',
+'ERCOT':'Electric Reliability Council of Texas',
+'MISO':'Midcontinent Independent System Operator',
+'SPP':'Southwest Power Pool',
+'Capacity Factor':'Actual vs maximum output \u2014 utilization',
+'SCADA':'Supervisory Control and Data Acquisition',
+'BESS':'Battery Energy Storage System',
+'BECCS':'Bioenergy with Carbon Capture and Storage',
+'CCS':'Carbon Capture and Storage',
+'CCUS':'Carbon Capture, Utilization, and Storage',
+'DAC':'Direct Air Capture \u2014 CO\u2082 from atmosphere',
+'45Q':'US tax credit for carbon capture',
+'CI':'Carbon Intensity \u2014 lifecycle CO\u2082 per unit energy',
+'LCFS':'Low Carbon Fuel Standard \u2014 California program',
+'Biomethanol':'Methanol from biomass feedstock',
+'Sequestration':'Permanent underground CO\u2082 storage',
+'Class VI Well':'EPA permit for CO\u2082 injection',
+'FID':'Final Investment Decision \u2014 capital commitment',
+'FEL':'Front-End Loading \u2014 stage-gate methodology',
+'FEL-1':'Identify and assess \u2014 concept screening',
+'FEL-2':'Concept selection and preliminary design',
+'FEL-3':'Detailed design before execution',
+'EPC':'Engineering, Procurement, Construction',
+'FEED':'Front-End Engineering Design',
+'CAPEX':'Capital Expenditure \u2014 asset acquisition',
+'OPEX':'Operating Expenditure \u2014 ongoing costs',
+'WBS':'Work Breakdown Structure',
+'P6':'Primavera P6 \u2014 project scheduling',
+'CPM':'Critical Path Method \u2014 duration analysis',
+'Gate Review':'Stage-gate decision \u2014 proceed or kill',
+'Risk Register':'Documented threats and mitigations',
+'MOC':'Management of Change',
+'IRR':'Internal Rate of Return \u2014 makes NPV zero',
+'NPV':'Net Present Value \u2014 present value of cash flows',
+'WACC':'Weighted Average Cost of Capital',
+'Cap Rate':'Capitalization Rate \u2014 NOI / asset value',
+'DCF':'Discounted Cash Flow \u2014 valuation method',
+'EBITDA':'Earnings Before Interest, Taxes, Depreciation, Amortization',
+'EV/EBITDA':'Enterprise Value multiple',
+'D/E':'Debt-to-Equity Ratio',
+'ROE':'Return on Equity',
+'ROIC':'Return on Invested Capital',
+'ORRI':'Overriding Royalty Interest \u2014 production revenue share',
+'NPI':'Net Profits Interest \u2014 extraction profit share',
+'IRR > WACC':'Value creation \u2014 returns exceed cost of capital',
+'JV':'Joint Venture \u2014 shared ownership',
+'JDA':'Joint Development Agreement',
+'LOI':'Letter of Intent',
+'DD':'Due Diligence \u2014 pre-investment investigation',
+'P50/P90':'Probability estimates \u2014 median vs high-confidence',
+'\u03a8':'Psi \u2014 quantum wave function',
+'\u2207\u00b2\u03c8':'Schrodinger equation \u2014 quantum state evolution',
+'\u210f':'Reduced Planck constant',
+'\u03c3':'Stefan-Boltzmann constant, stress, or std deviation',
+'\u03b1':'Fine structure constant or thermal diffusivity',
+'\u03b2':'Systematic risk or inverse temperature',
+'\u03a3':'Summation \u2014 adding series of terms',
+'\u03c0':'Pi \u2014 circumference to diameter ratio',
+'\u221e':'Infinity \u2014 unbounded quantity',
+'\u222b':'Integral \u2014 continuous summation',
+'\u2202':'Partial derivative \u2014 rate of change',
+'\u2207':'Del operator \u2014 gradient, divergence, or curl',
+};
+var allTerms=Object.keys(library);
+function shuffleSelect(arr,n){var copy=arr.slice();for(var i=copy.length-1;i>0;i--){var j=Math.random()*i|0;var tmp=copy[i];copy[i]=copy[j];copy[j]=tmp}return copy.slice(0,n)}
+var sessionTerms=shuffleSelect(allTerms,60);
+var termPool=sessionTerms.slice();
+function getRandomTerm(){if(termPool.length===0)termPool=shuffleSelect(allTerms,60);return termPool.splice(Math.random()*termPool.length|0,1)[0]}
+
+var tooltip=document.createElement('div');
+tooltip.style.cssText='position:fixed;z-index:9998;font-family:"JetBrains Mono",monospace;font-size:0.65rem;font-weight:300;color:#c8d6e5;background:rgba(10,12,18,.92);border:1px solid rgba(168,196,224,.15);padding:0.6rem 0.9rem;max-width:280px;line-height:1.5;pointer-events:none;opacity:0;transition:opacity .25s,background .8s,color .8s,border-color .8s;backdrop-filter:blur(8px);letter-spacing:.02em';
+document.body.appendChild(tooltip);
+var hoveredEq=null;
+var darkColors=['168,196,224','200,210,230','190,170,130','140,200,200','180,185,210','210,190,150'];
+var lightColors=['50,80,130','70,85,120','130,95,40','30,110,110','80,85,120','150,110,40'];
+
+function FloatingEq(){this.reset(true);this.textWidth=80}
+FloatingEq.prototype.reset=function(init){
+  this.x=Math.random()*W;this.y=init?Math.random()*H:H+20;
+  this.vx=(Math.random()-.5)*.15;this.vy=-(Math.random()*.12+.04);
+  this.text=getRandomTerm();this.size=8+Math.random()*7;
+  this.alpha=.06+Math.random()*.18;this.maxAlpha=this.alpha;this.fadeIn=0;
+  this.rotation=(Math.random()-.5)*.15;this.drift=Math.random()*6.28;
+  this.driftSpeed=.002+Math.random()*.003;this.driftAmount=8+Math.random()*15;
+  this.hovered=false;this.hoverGlow=0;
+  this.pulsePhase=Math.random()*6.28;this.pulseSpeed=.008+Math.random()*.015;
+  this.pulseDepth=.3+Math.random()*.5;
+  this.colorIdx=Math.random()*darkColors.length|0;
+  this.color=darkColors[this.colorIdx];
+  this.hoverColor=this.color.split(',').map(function(c){return Math.min(255,(+c)+60)}).join(',');
+};
+FloatingEq.prototype.updateColor=function(){
+  var c=isLightMode?lightColors:darkColors;this.color=c[this.colorIdx];
+  this.hoverColor=this.color.split(',').map(function(c){return Math.min(255,(+c)+60)}).join(',');
+};
+FloatingEq.prototype.update=function(){
+  this.drift+=this.driftSpeed;this.pulsePhase+=this.pulseSpeed;
+  this.x+=this.vx+Math.sin(this.drift)*this.driftAmount*.003;this.y+=this.vy;
+  if(this.fadeIn<1)this.fadeIn+=.008;if(this.y<-30)this.reset(false);
+  if(this.hovered&&this.hoverGlow<1)this.hoverGlow=Math.min(1,this.hoverGlow+.08);
+  if(!this.hovered&&this.hoverGlow>0)this.hoverGlow=Math.max(0,this.hoverGlow-.04);
+};
+FloatingEq.prototype.hitTest=function(mx,my){
+  var dx=mx-this.x,dy=my-(this.y-this.size*.35);
+  return dx>-20&&dx<this.textWidth+20&&dy>-this.size&&dy<this.size;
+};
+FloatingEq.prototype.draw=function(){
+  var breath=1-this.pulseDepth*.5+Math.sin(this.pulsePhase)*this.pulseDepth*.5;
+  var baseA=this.maxAlpha*Math.min(this.fadeIn,1)*breath;
+  if(isLightMode)baseA*=1.5;if(baseA<.005)return;
+  var a=baseA+this.hoverGlow*(0.7-baseA);
+  ctx.save();ctx.translate(this.x,this.y);ctx.rotate(this.rotation);ctx.globalAlpha=a;
+  ctx.font='300 '+this.size+'px "JetBrains Mono",monospace';
+  ctx.fillStyle=this.hoverGlow>0?'rgb('+this.hoverColor+')':'rgb('+this.color+')';
+  ctx.fillText(this.text,0,0);this.textWidth=ctx.measureText(this.text).width;ctx.restore();
+};
+
+var eqs=[];var eqCount=window.innerWidth<768?25:60;
+for(var i=0;i<eqCount;i++)eqs.push(new FloatingEq());
+
+var eqAnimating=false;
+function animateEqs(){
+  if(!eqAnimating)return;ctx.clearRect(0,0,W,H);hoveredEq=null;
+  for(var i=0;i<eqs.length;i++){var e=eqs[i];if(e.fadeIn>.5&&e.hitTest(mouseX,mouseY)){hoveredEq=e;e.hovered=true}else{e.hovered=false}}
+  if(hoveredEq&&library[hoveredEq.text]){
+    var term=hoveredEq.text,def=library[term];
+    tooltip.innerHTML='<span style="color:rgb('+hoveredEq.color+');opacity:.9">'+term+'</span><br>'+def;
+    var tx=mouseX+15,ty=mouseY-10;if(tx+290>W)tx=mouseX-295;if(ty<10)ty=mouseY+20;if(ty+80>H)ty=H-80;
+    tooltip.style.left=tx+'px';tooltip.style.top=ty+'px';tooltip.style.opacity='1';
+  }else{tooltip.style.opacity='0'}
+  for(var i=0;i<eqs.length;i++){eqs[i].update();eqs[i].draw()}
+  requestAnimationFrame(animateEqs);
+}
+
+// Theme toggle
+var themeBtn=document.getElementById('theme-toggle');
+function applyTheme(){
+  document.body.classList.toggle('light',isLightMode);
+  for(var i=0;i<eqs.length;i++)eqs[i].updateColor();
+  if(isLightMode){tooltip.style.background='rgba(245,247,252,.95)';tooltip.style.color='#2a3448';tooltip.style.borderColor='rgba(74,106,154,.15)'}
+  else{tooltip.style.background='rgba(10,12,18,.92)';tooltip.style.color='#c8d6e5';tooltip.style.borderColor='rgba(168,196,224,.15)'}
+  localStorage.setItem('theme',isLightMode?'light':'dark');
+}
+themeBtn.addEventListener('click',function(){isLightMode=!isLightMode;applyTheme()});
+
+// Video control
+var video=document.getElementById('hero-video');
+var content=document.getElementById('content');
+var eqCanvas=document.getElementById('eq-canvas');
+var skipBtn=document.getElementById('skip');
+var hint=document.getElementById('hint');
+var themeToggle=document.getElementById('theme-toggle');
+
+function showContent(){
+  video.style.transition='opacity 1.5s ease-out';video.style.opacity='0';
+  content.classList.add('visible');eqCanvas.classList.add('visible');
+  hint.classList.add('visible');themeToggle.classList.add('visible');
+  skipBtn.classList.add('hidden');
+  eqAnimating=true;animateEqs();
+  setTimeout(function(){video.pause();video.style.display='none'},2000);
+  sessionStorage.setItem('intro-seen','true');
+  var saved=localStorage.getItem('theme');
+  if(saved==='light'){isLightMode=true;applyTheme()}
+}
+
+setTimeout(function(){skipBtn.classList.add('show')},3000);
+video.addEventListener('ended',showContent);
+skipBtn.addEventListener('click',showContent);
+var pp=video.play();if(pp!==undefined){pp.catch(function(){showContent()})}
+video.addEventListener('loadedmetadata',function(){
+  setTimeout(function(){if(!content.classList.contains('visible'))showContent()},(video.duration*1000)+2000);
+});
+if(sessionStorage.getItem('intro-seen')){
+  video.style.display='none';video.pause();
+  content.classList.add('visible');eqCanvas.classList.add('visible');
+  hint.classList.add('visible');themeToggle.classList.add('visible');
+  skipBtn.classList.add('hidden');eqAnimating=true;animateEqs();
+  var saved=localStorage.getItem('theme');
+  if(saved==='light'){isLightMode=true;applyTheme()}
+}
+</script>
+</body>
+</html>
